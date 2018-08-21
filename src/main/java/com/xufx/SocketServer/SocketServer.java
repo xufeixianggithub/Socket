@@ -1,34 +1,34 @@
 package com.xufx.SocketServer;
 
+import com.xufx.Task.SingleServer;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SocketServer {
     public static void main(String[] args) throws IOException {
         int port=8089;
+
+        int clientNo=1;
+
+
         ServerSocket socketServer=new ServerSocket(port);
-        Socket socket=socketServer.accept();
+        ExecutorService exec= Executors.newCachedThreadPool();
 
-        DataInputStream dataInputStream=new DataInputStream(socket.getInputStream());
-
-        DataOutputStream dataOutputStream=new DataOutputStream(socket.getOutputStream());
-
-        do{
-            int length=dataInputStream.readInt();
-
-            System.out.println("服务器端收到的边长数据为：" + length);
-
-            dataOutputStream.writeDouble(length*length);
-
-            dataOutputStream.flush();
-
-        }while (dataInputStream.readInt()!=0);
-
-
-        socket.close();
-        socketServer.close();
+        try{
+            while (true){
+                Socket socket=socketServer.accept();
+                exec.execute(new SingleServer(socket,clientNo));
+                clientNo++;
+                System.out.println("clientNo"+clientNo);
+            }
+        }finally {
+            socketServer.close();
+        }
     }
 }
